@@ -257,14 +257,12 @@ export function Dashboard() {
             setSection={navigate}
           />
 
-          {isAdmin && (
-            <NavGroup
-              title="ADMIN"
-              items={adminNav}
-              section={section}
-              setSection={navigate}
-            />
-          )}
+          <NavGroup
+            title="ADMIN"
+            items={adminNav}
+            section={section}
+            setSection={navigate}
+          />
 
           <NavGroup
             title="SYSTEM / DEBUG"
