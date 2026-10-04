@@ -52,6 +52,160 @@ import {
   withdrawalsApi,
 } from "@/lib/api";
 
+const DEFAULT_BODIES = {
+  // =========================
+  // Authentication
+  // =========================
+
+  requestOtp: {
+    email: "test@example.com",
+  },
+
+  signUp: {
+    email: "test@example.com",
+    password: "TestPassword123!",
+    otp: "123456",
+  },
+
+  simpleLogin: {
+    email: "test@example.com",
+    password: "TestPassword123!",
+  },
+
+  loginOtp: {
+    email: "test@example.com",
+    otp: "123456",
+  },
+
+  changePassword: {
+    password: "NewTestPassword123!",
+  },
+
+  // =========================
+  // User
+  // =========================
+
+  updateProfile: {
+    firstName: "Test",
+    lastName: "User",
+    userName: "test_user",
+    dateOfBirth: "1995-01-15",
+    bio: "Test profile from NestStarter testing dashboard",
+  },
+
+  // =========================
+  // Deposits
+  // =========================
+
+  createDeposit: {
+    provider: "FAKE",
+    currency: "USD",
+    amount: "100",
+  },
+
+  // =========================
+  // Withdrawals
+  // =========================
+
+  createWithdrawal: {
+    currency: "USD",
+    amount: "25",
+    destination: "test-wallet-address",
+  },
+
+  // =========================
+  // Tickets
+  // =========================
+
+  createTicket: {
+    subject: "Test support ticket",
+    message:
+      "This is a test support ticket created from the testing dashboard.",
+  },
+
+  createTicketMessage: {
+    body: "This is a test reply from the testing dashboard.",
+  },
+
+  // =========================
+  // Admin Users
+  // =========================
+
+  createAdminUser: {
+    email: "admin-test@example.com",
+    password: "AdminTestPassword123!",
+    role: "USER",
+  },
+
+  updateAdminUser: {
+    email: "updated-test@example.com",
+    role: "USER",
+    emailVerified: true,
+    firstName: "Updated",
+    lastName: "User",
+    userName: "updated_user",
+    dateOfBirth: "1995-01-15",
+    bio: "Updated from admin testing dashboard",
+    status: "ACTIVE",
+  },
+
+  changeAdminUserPassword: {
+    password: "NewAdminTestPassword123!",
+  },
+
+  // =========================
+  // Admin User Balances
+  // =========================
+
+  updateUserBalance: {
+    amount: "100",
+  },
+
+  // =========================
+  // Admin Ticket Categories
+  // =========================
+
+  createTicketCategory: {
+    name: "Technical Support",
+    description: "Technical support test category",
+  },
+
+  updateTicketCategory: {
+    name: "Updated Technical Support",
+    description: "Updated test category",
+    isActive: true,
+  },
+
+  // =========================
+  // Admin Ticket Operations
+  // =========================
+
+  assignTicket: {
+    assignedToUserId: null,
+  },
+
+  updateTicketStatus: {
+    status: "OPEN",
+  },
+
+  updateTicketPriority: {
+    priority: "MEDIUM",
+  },
+
+  createAdminTicketMessage: {
+    body: "This is an admin reply from the testing dashboard.",
+  },
+
+  // =========================
+  // Admin Withdrawal
+  // =========================
+
+  updateWithdrawalStatus: {
+    status: "APPROVED",
+    reason: "Withdrawal approved for testing.",
+  },
+} as const;
+
 type Section =
   | "Dashboard"
   | "Authentication"
@@ -186,8 +340,6 @@ export function Dashboard() {
 
   const me =
     data && typeof data === "object" ? (data as Record<string, unknown>) : null;
-
-  const isAdmin = me?.role === "ADMIN";
 
   const execute = async (label: string, operation: () => Promise<unknown>) => {
     setLoading(true);
