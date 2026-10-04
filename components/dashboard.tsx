@@ -234,6 +234,7 @@ type Action = {
   method: string;
   path: string;
   description: string;
+  defaultBody?: Record<string, unknown>;
   execute: (input: OperationInput) => Promise<unknown>;
 };
 
@@ -840,6 +841,7 @@ function Authentication({
             method: "POST",
             path: "/auth/request-otp",
             description: "Request an email OTP.",
+            defaultBody: DEFAULT_BODIES.requestOtp,
             execute: ({ body }) =>
               execute("POST /auth/request-otp", () =>
                 authApi.requestOtp(parseJson(body) as { email: string }),
@@ -850,6 +852,7 @@ function Authentication({
             method: "POST",
             path: "/auth/sign-up",
             description: "Create account using OTP.",
+            defaultBody: DEFAULT_BODIES.signUp,
             execute: ({ body }) =>
               execute("POST /auth/sign-up", () =>
                 authApi.signUp(
@@ -866,6 +869,7 @@ function Authentication({
             method: "POST",
             path: "/auth/simple-login",
             description: "Create a session using email/password.",
+            defaultBody: DEFAULT_BODIES.simpleLogin,
             execute: ({ body }) =>
               execute("POST /auth/simple-login", () =>
                 authApi.loginPassword(
@@ -881,6 +885,7 @@ function Authentication({
             method: "POST",
             path: "/auth/login-otp",
             description: "Create a session using OTP.",
+            defaultBody: DEFAULT_BODIES.loginOtp,
             execute: ({ body }) =>
               execute("POST /auth/login-otp", () =>
                 authApi.loginOtp(
@@ -896,6 +901,7 @@ function Authentication({
             method: "POST",
             path: "/auth/change-password",
             description: "Change the current password.",
+            defaultBody: DEFAULT_BODIES.changePassword,
             execute: ({ body }) =>
               execute("POST /auth/change-password", () =>
                 authApi.changePassword(parseJson(body) as { password: string }),
@@ -971,6 +977,7 @@ function Profile({
           method: "PATCH",
           path: "/users/me",
           description: "Update profile fields.",
+          defaultBody: DEFAULT_BODIES.updateProfile,
           execute: ({ body }) =>
             execute("PATCH /users/me", () =>
               usersApi.updateMe(
@@ -1068,7 +1075,11 @@ function OperationPanel({
   const [id, setId] = useState("");
   const [id2, setId2] = useState("");
   const [query, setQuery] = useState("");
-  const [body, setBody] = useState("");
+  const [body, setBody] = useState(() =>
+    actions[0]?.defaultBody
+      ? JSON.stringify(actions[0].defaultBody, null, 2)
+      : "",
+  );
   const [idempotencyKey, setIdempotencyKey] = useState(crypto.randomUUID());
 
   const action = actions[selected];
@@ -1088,7 +1099,14 @@ function OperationPanel({
             {actions.map((item, index) => (
               <button
                 key={`${item.method}-${item.path}`}
-                onClick={() => setSelected(index)}
+                onClick={() => {
+                  setSelected(index);
+                  setBody(
+                    item.defaultBody
+                      ? JSON.stringify(item.defaultBody, null, 2)
+                      : "",
+                  );
+                }}
                 className={`rounded-lg border p-3 text-left ${
                   index === selected
                     ? "border-primary bg-primary/5"
@@ -1330,6 +1348,7 @@ function getDepositActions(
       method: "POST",
       path: "/deposits",
       description: "Create a deposit. Idempotency-Key is required.",
+      defaultBody: DEFAULT_BODIES.createDeposit,
       execute: ({ body, idempotencyKey }) =>
         execute("POST /deposits", () =>
           depositsApi.create(
@@ -1383,6 +1402,7 @@ function getWithdrawalActions(
       method: "POST",
       path: "/withdrawals",
       description: "Create a withdrawal request.",
+      defaultBody: DEFAULT_BODIES.createWithdrawal,
       execute: ({ body }) =>
         execute("POST /withdrawals", () =>
           withdrawalsApi.create(
@@ -1425,6 +1445,7 @@ function getTicketActions(
       method: "POST",
       path: "/tickets",
       description: "Create a ticket with its initial message.",
+      defaultBody: DEFAULT_BODIES.createTicket,
       execute: ({ body }) =>
         execute("POST /tickets", () =>
           ticketsApi.create(
@@ -1442,6 +1463,7 @@ function getTicketActions(
       method: "POST",
       path: "/tickets/:id/messages",
       description: "Reply to an existing ticket.",
+      defaultBody: DEFAULT_BODIES.createTicketMessage,
       execute: ({ id, body }) =>
         execute(`POST /tickets/${id}/messages`, () =>
           ticketsApi.createMessage(id, {
@@ -1522,6 +1544,7 @@ function getAdminUserActions(
       method: "POST",
       path: "/admin/users",
       description: "Create a user or administrator.",
+      defaultBody: DEFAULT_BODIES.createAdminUser,
       execute: ({ body }) =>
         execute("POST /admin/users", () =>
           adminUsersApi.create(
@@ -1538,6 +1561,7 @@ function getAdminUserActions(
       method: "PATCH",
       path: "/admin/users/:id",
       description: "Update account/profile information.",
+      defaultBody: DEFAULT_BODIES.updateAdminUser,
       execute: ({ id, body }) =>
         execute(`PATCH /admin/users/${id}`, () =>
           adminUsersApi.update(id, parseJson(body) as Record<string, unknown>),
@@ -1556,6 +1580,7 @@ function getAdminUserActions(
       method: "PATCH",
       path: "/admin/users/:id/password",
       description: "Reset another user password.",
+      defaultBody: DEFAULT_BODIES.changeAdminUserPassword,
       execute: ({ id, body }) =>
         execute(`PATCH /admin/users/${id}/password`, () =>
           adminUsersApi.changePassword(id, {
@@ -1608,6 +1633,7 @@ function getAdminBalanceActions(
       method: "PATCH",
       path: "/admin/users/:userId/balances/:currency",
       description: "Set a user balance amount.",
+      defaultBody: DEFAULT_BODIES.updateUserBalance,
       execute: ({ id, id2, body }) =>
         execute(`PATCH /admin/users/${id}/balances/${id2}`, () =>
           adminUsersApi.updateBalance(id, id2, {
@@ -1678,6 +1704,7 @@ function getAdminWithdrawalActions(
       method: "PATCH",
       path: "/admin/withdrawals/:id/status",
       description: "Approve, reject or complete a withdrawal.",
+      defaultBody: DEFAULT_BODIES.updateWithdrawalStatus,
       execute: ({ id, body }) =>
         execute(`PATCH /admin/withdrawals/${id}/status`, () =>
           adminWithdrawalsApi.updateStatus(id, {
@@ -1795,6 +1822,7 @@ function getAdminTicketActions(
       method: "POST",
       path: "/admin/tickets/categories",
       description: "Create a ticket category.",
+      defaultBody: DEFAULT_BODIES.createTicketCategory,
       execute: ({ body }) =>
         execute("POST /admin/tickets/categories", () =>
           adminTicketsApi.createCategory(
@@ -1810,6 +1838,7 @@ function getAdminTicketActions(
       method: "PATCH",
       path: "/admin/tickets/categories/:id",
       description: "Update a ticket category.",
+      defaultBody: DEFAULT_BODIES.updateTicketCategory,
       execute: ({ id, body }) =>
         execute(`PATCH /admin/tickets/categories/${id}`, () =>
           adminTicketsApi.updateCategory(
@@ -1845,6 +1874,7 @@ function getAdminTicketActions(
       method: "POST",
       path: "/admin/tickets/:id/messages",
       description: "Reply to a ticket as administrator.",
+      defaultBody: DEFAULT_BODIES.createAdminTicketMessage,
       execute: ({ id, body }) =>
         execute(`POST /admin/tickets/${id}/messages`, () =>
           adminTicketsApi.createMessage(id, {
@@ -1857,6 +1887,7 @@ function getAdminTicketActions(
       method: "PATCH",
       path: "/admin/tickets/:id/assign",
       description: "Assign or unassign an administrator.",
+      defaultBody: DEFAULT_BODIES.assignTicket,
       execute: ({ id, body }) =>
         execute(`PATCH /admin/tickets/${id}/assign`, () =>
           adminTicketsApi.assign(id, {
@@ -1870,6 +1901,7 @@ function getAdminTicketActions(
       method: "PATCH",
       path: "/admin/tickets/:id/status",
       description: "Change ticket status.",
+      defaultBody: DEFAULT_BODIES.updateTicketStatus,
       execute: ({ id, body }) =>
         execute(`PATCH /admin/tickets/${id}/status`, () =>
           adminTicketsApi.updateStatus(id, {
@@ -1882,6 +1914,7 @@ function getAdminTicketActions(
       method: "PATCH",
       path: "/admin/tickets/:id/priority",
       description: "Change ticket priority.",
+      defaultBody: DEFAULT_BODIES.updateTicketPriority,
       execute: ({ id, body }) =>
         execute(`PATCH /admin/tickets/${id}/priority`, () =>
           adminTicketsApi.updatePriority(id, {
